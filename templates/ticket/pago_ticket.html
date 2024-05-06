@@ -1,0 +1,125 @@
+{% extends 'ticket/ticket.html' %}
+
+{% block cont_formularios %}
+
+<div>
+    <h1>Pago Ticket</h1>
+    <div>
+        <form id="form_buscar_ticket">
+            <label for="id_ticket">ingresa el id_ticket:</label><br>
+            <input type="number" id="id_ticket" required>
+            <button type="submit" class="btn_buscar">buscar</button><br>
+
+        </form>
+        <form id="form_reg_pago_ticket">
+            <p>Informacion Ticket: <br>
+                <span id="datos_tiket"></span>
+            </p>
+            <div id="pago_visitante"></div>
+            <input type="hidden" id="monto_pago">
+            <button type="submit" class="registrar-btn"> Registrar </button>
+            <a href="/ticket/registrar_pago_ticket" class="close-btn" id="cerrar-btn">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+<script>
+    function calcularMonto(hora_ingreso){
+        precio= $('#id_servicio_visitante').text().match(/\d+\.\d+/);
+        var fechaProporcionada = new Date(hora_ingreso);
+        var fechaActual = new Date();
+        var diferencia = (fechaActual.getTime() - fechaProporcionada.getTime()) / (1000 * 60);
+        var horas = Math.ceil(diferencia / 60);
+        $('#monto').text(precio*horas);
+        $('#monto_pago').val(precio*horas);
+    }
+    function traer_servicio_visitante(){
+        $.ajax({
+            url: url_servidor+'/ticket/traer_servicio_visitante',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#id_servicio_visitante');
+                // Limpiar el select antes de agregar nuevas opciones
+                select.empty();
+                select.append($('<option>', {
+                    value: '',
+                    text: 'Selecciona una opción'
+                }));
+                // Agregar opciones al select
+                $.each(data, function (index, item) {
+                    select.append($('<option>', {
+                        value: item.id,
+                        text: item.nombre + ' - ' + item.precio+'Bs'
+                    }));
+                });
+            }
+        });
+    }
+    $('#form_buscar_ticket').submit(function (event) {
+        event.preventDefault();
+        $('#pago_visitante').html('');
+
+        $.ajax({
+            url: url_servidor+'/ticket/buscar_ticket/'+ $('#id_ticket').val(),
+            type: 'GET',
+            dataType: 'json',
+            success: function (respuesta) {
+                console.log(respuesta);
+                contenido= respuesta.contenido;
+                if (respuesta.exito) {
+                    datos_tiket= `
+                    hora_ingreso: ${new Date(contenido.hora_ingreso).toLocaleString()} <br>
+                    Recibir Pago: ${contenido.pagar === 'S'? 'Si': 'No, es un abonado'}
+                    `;
+                    $('#datos_tiket').html(datos_tiket);
+                    if(contenido.pagar==='S'){
+                        pago_visitante= `
+                        <label for="observacion">observacion:</label><br>
+                        <textarea id="observacion" name="observacion" rows="3" cols="40" maxlength="250"></textarea><br><br>
+                        <select id="id_servicio_visitante" required></select>
+                        <button type="button" onclick="calcularMonto('${contenido.hora_ingreso}')" class="btn_buscar">calcular</button><br>
+
+                        <p>Monto Hora: <span id="monto"></span>
+                        </p>
+                        `;
+                        traer_servicio_visitante();
+                        $('#pago_visitante').html(pago_visitante)
+                    }
+                } else {
+                    $('#datos_tiket').text(contenido);
+                }
+            }
+        });
+    });
+
+    $('#form_reg_pago_ticket').submit(function (event) {
+        event.preventDefault();
+        var pagar = "N"
+        if($('#id_servicio_visitante').val() ===''){
+            pagar = "S";
+        }
+        var formData = {
+            id_ticket: $('#id_ticket').val(),
+            monto: $('#monto_pago').val(),
+            observacion: $('#observacion').val(),
+            id_servicio_visitante: $('#id_servicio_visitante').val(),
+            pagar: pagar
+        };
+        $.ajax({
+            url: url_servidor+'/ticket/registrar_pago_ticket',
+            type: 'PUT',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(formData),
+            success: function (respuesta) {
+                if (respuesta.exito) {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje, respuesta.redireccion);
+                } else {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

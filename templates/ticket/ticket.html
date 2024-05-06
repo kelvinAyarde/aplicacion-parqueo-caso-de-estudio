@@ -1,0 +1,39 @@
+{% extends 'inicio/base.html' %}
+
+{% block contenido %}
+<div class="ticket">
+    <div class="cont_pantalla_emergente">
+        {% block contenido_pantalla_emergente %}
+        {% endblock %}
+    </div>
+    <section class="parte-top">
+        <a href="/ticket/registrar_ticket">
+        <div class="decorado_cubrir color_decorado_cubrir_1">
+            <span class="material-icons-sharp">
+                add
+            </span>
+            <h3>Agregar Ticket</h3>
+        </div>
+        </a>
+        <a href="/ticket/registrar_pago_ticket">
+            <div class="decorado_cubrir color_decorado_cubrir_2">
+                <span class="material-icons-sharp">
+                    monetization_on
+                </span>
+                <h3>Pagar Ticket</h3>
+            </div>
+        </a>
+    </section>
+    <section class="parte-mid">
+        <div class="cont_formularios">
+            {% block cont_formularios %}
+            {% endblock %}
+        </div>
+    </section>
+
+</div>
+
+<script>
+
+</script>
+{% endblock %}

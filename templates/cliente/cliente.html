@@ -1,0 +1,114 @@
+{% extends 'inicio/base.html' %}
+
+{% block contenido %}
+<div class="cliente">
+    <div class="cont_pantalla_emergente">
+        {% block contenido_pantalla_emergente %}
+        {% endblock %}
+    </div>
+
+    <section class="parte-top">
+        <a href="/cliente/registro">
+        <div class="decorado_cubrir color_decorado_cubrir_1">
+            <span class="material-icons-sharp">
+                add
+            </span>
+            <h3>Agregar Cliente</h3>
+        </div>
+        </a>
+
+        <a href="/cliente/registro_vehiculo">
+            <div class="decorado_cubrir color_decorado_cubrir_2">
+                <span class="material-icons-sharp">
+                    add
+                </span>
+                <h3>Agregar Vehiculo</h3>
+            </div>
+        </a>
+        <a href="/cliente/registro_vehiculo_cliente">
+            <div class="decorado_cubrir color_decorado_cubrir_2">
+                <span class="material-icons-sharp">
+                    add
+                </span>
+                <h3>Agregar Vehiculo Cliente</h3>
+            </div>
+        </a>
+    </section>
+
+    <section class="parte-mid">
+        <div class="cont_tabla">
+            <h2>Clientes</h2>
+            <input type="search" id="buscarCliente" class="input_busqueda" 
+            placeholder="Buscar cliente">
+            <table id="tabla_clientes">
+                <thead>
+                    <tr>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Nro_vehiculos</th>
+                        <th>Nro_ci</th>
+                        <th>Operaciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    cargar_tabla_cliente();
+    function cargar_tabla_cliente(){
+        $.ajax({
+            url: url_servidor+'/cliente/traer_clientes',
+            type: 'GET',
+            dataType: 'json',
+            success: function (resultado) {
+                var tabla = $('#tabla_clientes tbody');
+                if (resultado.length === 0) {
+                    console.log("la tabla no tiene datos");
+                }else{
+                    tabla.empty();
+                    resultado.forEach(data => {
+                        const tr = document.createElement('tr');
+                        const trContent = `
+                        <tr>
+                            <td>${data.nombres}</td>
+                            <td>${data.apellidos}</td>
+                            <td>${data.nro_vehiculos}</td>
+                            <td>${data.nro_ci}</td>
+                            <td><button type="button" onclick="editar_cliente(${data.id})" class="btn_editar">editar</button></td>
+                        </tr>    
+                        `;
+                        tr.innerHTML = trContent;
+                        
+                        tabla.append(trContent);
+                    });
+                }
+            }
+        });
+    }
+    function editar_cliente(id){
+
+    }
+    $('#buscarCliente').on('input', function() {
+        var textoBusqueda = $(this).val().toLowerCase();
+        $('#tabla_clientes tbody tr').each(function() {
+            var coincide = false;
+            $(this).find('td').each(function() {
+                if ($(this).text().toLowerCase().includes(textoBusqueda)) {
+                    coincide = true;
+                    return false; // Sale del bucle each() interno
+                }
+            });
+            if (coincide) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'ticket/ticket.html' %}
+
+{% block cont_formularios %}
+<div>
+    <h1>Registro Ticket</h1>
+    <div class="cont_doble">
+        <section class="parte_izquierda">
+            <h2>Ticket</h2>
+            <form id="form_buscar_vehiculo">
+                <label for="placa">Placa:</label>
+                <input type="text" id="placa" name="placa" required maxlength="10" pattern="[0-9A-Z]{6,10}">
+                <button type="submit" class="btn_buscar">buscar</button><br><br>
+                <p>Datos:<br>
+                    <span id="datos_vehiculo"></span>
+                </p>
+                <input type="hidden" id="id_vehiculo">
+                <input type="hidden" id="id_cliente">
+                <input type="hidden" id="reg_pago">
+            </form>
+            <form id="form_registro_ticket">
+                <p>Lugar Seleccionado:<br>
+                    <span id="datos_lugar"></span>
+                </p>
+                <input type="hidden" id="id_lugar">
+                <button type="submit" class="registrar-btn"> Registrar </button>
+                <a href="/ticket/registrar_ticket" class="close-btn" id="cerrar-btn">Cancelar</a>
+            </form>
+        </section>
+        <section class="parte_derecha">
+            <div class="cont_tabla">
+                <input type="search" id="buscar_lugar" class="input_busqueda" 
+                placeholder="Buscar Lugar">
+                <table id="tabla_lugar">
+                    <thead>
+                        <tr>
+                            <th>Nro_lugar</th>
+                            <th>Piso</th>
+                            <th>Estado</th>
+                            <th>Piso_descripcion</th>
+                            <th>Lugar_descripcion</th>
+                            <th>Operacion</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    function seleccion_id_lugar(id,lugar,piso){
+        datos_lugar = `
+        Nro_lugar: ${lugar} <br>
+        Piso: ${piso} <br>
+        `;
+        $('#id_lugar').val(id)
+        $('#datos_lugar').html(datos_lugar);
+    }
+
+    $('#form_buscar_vehiculo').submit(function (event) {
+        event.preventDefault();
+        $('#id_vehiculo').val('')
+        $('#contrato_activo').val('')
+        $.ajax({
+            url: url_servidor+'/ticket/buscar_vehiculo_placa_ticket/'+ $('#placa').val(),
+            type: 'GET',
+            dataType: 'json',
+            success: function (respuesta) {
+                contenido= respuesta.contenido;
+                if (respuesta.exito) {
+                    console.log(contenido);
+                    datos_busqueda= `
+                    placa: ${contenido.placa}<br>
+                    modelo_marca: ${contenido.modelo_marca} <br>
+                    color: ${contenido.color} <br>
+                    tipo_cliente: ${contenido.tipo_cliente} <br>
+                    `;
+                    $('#reg_pago').val('S');
+                    if(Object.keys(contenido).length > 5){
+                        //$('#reg_pago').val(contenido.existe_vehiculo_tiket)
+                        $('#id_cliente').val(contenido.id_cliente)
+                        datos_busqueda= datos_busqueda + 
+                        `cliente_nombre: ${contenido.cliente_nombres}  ${contenido.cliente_apellido}<br>`;
+                        if(Object.keys(contenido).length > 8){
+                            $('#reg_pago').val(contenido.existe_vehiculo_tiket)
+                            datos_busqueda= datos_busqueda + 
+                            `${contenido.existe_vehiculo_tiket === 'S' ? 'nota: Ya tiene un vehiculo en estacionamiento, se lo tomara como visitante!': '' }`;
+                        }
+                    }
+                    $('#datos_vehiculo').html(datos_busqueda);
+                    $('#id_vehiculo').val(contenido.id_vehiculo)
+                } else {
+                    $('#datos_vehiculo').text(contenido);
+                }
+            }
+        });
+    });
+
+    cargar_tabla_lugar();
+    function cargar_tabla_lugar(){
+        $.ajax({
+            url: url_servidor+'/ticket/traer_lugares',
+            type: 'GET',
+            dataType: 'json',
+            success: function (resultado) {
+                var tabla = $('#tabla_lugar tbody');
+                if (resultado.length === 0) {
+                    console.log("la tabla no tiene datos");
+                }else{
+                    tabla.empty();
+                    resultado.forEach(data => {
+                        const tr = document.createElement('tr');
+                        const trContent = `
+                        <tr>
+                            <td>${data.nro_lugar}</td>
+                            <td>${data.sigla_piso}</td>
+                            <td class="${data.estado === 'O' ? 'Ocupado' : 'Disponible'}">${data.estado === 'O' ? 'Ocupado' : 'Disponible'}</td>
+                            <td>${data.piso_descripcion}</td>  
+                            <td>${data.lugar_descripcion}</td>    
+                            <td><button type="button" onclick="seleccion_id_lugar(${data.id},'${data.nro_lugar}','${data.sigla_piso}')" 
+                                class="btn_editar">seleccionar</button></td>   
+                        </tr>    
+                        `;
+                        tr.innerHTML = trContent;
+                        tabla.append(trContent);
+                    });
+                }
+            }
+        });
+    }
+    $('#buscar_lugar').on('input', function() {
+        var textoBusqueda = $(this).val().toLowerCase();
+        $('#tabla_lugar tbody tr').each(function() {
+            var coincide = false;
+            $(this).find('td').each(function() {
+                if ($(this).text().toLowerCase().includes(textoBusqueda)) {
+                    coincide = true;
+                    return false; // Sale del bucle each() interno
+                }
+            });
+            if (coincide) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+
+    $('#form_registro_ticket').submit(function (event) {
+        event.preventDefault();
+
+        var formData = {
+            id_lugar: $('#id_lugar').val(),
+            id_vehiculo: $('#id_vehiculo').val(),
+            id_cliente: $('#id_cliente').val(),
+            reg_pago: $('#reg_pago').val()
+        };
+        console.log(formData);
+        $.ajax({
+            url: url_servidor+'/ticket/registrar_ticket',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(formData),
+            success: function (respuesta) {
+                if (respuesta.exito) {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje, respuesta.redireccion);
+                } else {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

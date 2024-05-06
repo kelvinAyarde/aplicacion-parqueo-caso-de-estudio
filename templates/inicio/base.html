@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/general.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/general.js') }}"></script>
+</head>
+<body class="dark-mode-variables">
+    <div class="popup-overlay" id="popup-overlay"></div>
+    <div class="cont_mensaje" id="mensaje"></div>
+
+    <div class="container">
+        <!-- Sidebar Section -->
+        <aside>
+            <div class="toggle">
+                <div class="logo">
+                    <img src="../static/imgs/logo.jpg">
+                    <h2>Central<span class="danger">Park</span></h2>
+                </div>
+                <div class="close" id="close-btn">
+                    <span class="material-icons-sharp">
+                        close
+                    </span>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <a href="/cliente">
+                    <span class="material-icons-sharp">person_outline</span>
+                    <h3>Clientes</h3>
+                </a>
+                <a href="/contrato">
+                    <span class="material-icons-sharp">description</span>
+                    <h3>Contratos</h3>
+                </a>
+                <a href="/ticket">
+                    <span class="material-icons-sharp">receipt</span>
+                    <h3>Tickets</h3>
+                </a>
+                <a href="/reporte">
+                    <span class="material-icons-sharp">bar_chart</span>
+                    <h3>Reportes</h3>
+                </a>
+                
+                <!-- <a href="#">
+                    <span class="material-icons-sharp">
+                        supervisor_account
+                    </span>
+                    <h3>Usuarios</h3>
+                </a>
+                -->
+                <a href="/cerrar_sesion" id="cerrar_sesion">
+                    <span class="material-icons-sharp">
+                        logout
+                    </span>
+                    <h3>Logout</h3>
+                </a>
+            </div>
+        </aside>
+        <!-- End of Sidebar Section -->
+
+        <!-- Main Content -->
+        <main>
+            <!-- Right Section -->
+        <div class="right-section">
+            <div class="nav">
+                <button id="menu-btn">
+                    <span class="material-icons-sharp">
+                        menu
+                    </span>
+                </button>
+                <div class="dark-mode">
+                    <span class="material-icons-sharp">
+                        light_mode
+                    </span>
+                    <span class="material-icons-sharp">
+                        dark_mode
+                    </span>
+                </div>
+
+                <div class="profile">
+                    <div class="info">
+                        <p>{{session['nombres']}}</p>
+                        <small class="text-muted">{{session['rol']}}</small>
+                    </div>
+                    <div class="profile-photo">
+                        <img src="../static/imgs/profile-1.jpg">
+
+                    </div>
+                </div>
+
+            </div>
+            <!-- End of Nav -->
+        </div>
+
+        <div class="contenido_principal">
+            {% block contenido %}
+            <!-- Contenido de cada página se insertará aquí -->
+            {% endblock %}
+        </div>
+        </main>
+        <!-- End of Main Content -->
+    </div>
+    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+</body>
+</html>

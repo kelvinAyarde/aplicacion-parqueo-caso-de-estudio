@@ -1,0 +1,55 @@
+{% extends 'reporte/reporte.html' %}
+
+{% block cont_formularios %}
+<div>
+    <h1>Reporte Contratos Vigente</h1>
+    <div class="cont_tabla">
+        
+        <table id="tabla_reporte">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Cantidad_vehiculos</th>
+                    <th>Tipo_servicio</th>
+                    <th>Contrato_inicio</th>
+                    <th>Contrato_fin</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    cargar_tabla_reporte3();
+    function cargar_tabla_reporte3(){
+        $.ajax({
+            url: url_servidor+'/reporte/traer_reporte_con_vig',
+            type: 'GET',
+            dataType: 'json',
+            success: function (resultado) {
+                var tabla = $('#tabla_reporte tbody');
+                if (resultado.length === 0) {
+                    console.log("la tabla no tiene datos");
+                }else{
+                    tabla.empty();
+                    resultado.forEach(data => {
+                        const tr = document.createElement('tr');
+                        const trContent = `
+                        <tr>
+                            <td>${data.nombre_cliente}</td>
+                            <td>${data.cantidad_vehiculos}</td>
+                            <td>${data.servicio_abonado}</td>
+                            <td>${data.contrato_fecha_inicio}</td>
+                            <td>${data.contrato_fecha_fin}</td>
+                        </tr>    
+                        `;
+                        tr.innerHTML = trContent;
+                        tabla.append(trContent);
+                    });
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

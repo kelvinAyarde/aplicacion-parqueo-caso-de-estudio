@@ -1,0 +1,102 @@
+{% extends 'cliente/cliente.html' %}
+
+{% block contenido_pantalla_emergente %}
+<main>
+    <h1>Registro Cliente</h1>
+    <form id="form_reg_cliente">
+        <div class="cont_form_2_secciones">
+            <section class="form_seccion">
+            <h3>Datos del Cliente</h3>
+            <label for="nombres">Nombres:</label>
+            <input type="text" id="nombres" name="nombres" required maxlength="50"><br><br>
+            <label for="apellido_p">Apellido Paterno:</label>
+            <input type="text" id="apellido_p" name="apellido_p" required maxlength="50"><br><br>
+            <label for="apellido_m">Apellido Materno:</label>
+            <input type="text" id="apellido_m" name="apellido_m" maxlength="50"><br><br>
+            <label for="nro_ci">Número de CI:</label>
+            <input type="text" id="nro_ci" name="nro_ci" required maxlength="10" pattern="[0-9A-Za-z]{6,10}"><br><br>
+            <label for="email">Correo Electrónico:</label>
+            <input type="email" id="email" name="email" maxlength="150" autocomplete="off"><br><br>
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" name="telefono" required maxlength="15"><br><br>
+            <label for="direccion">Dirección:</label>
+            <textarea id="direccion" name="direccion" rows="3" cols="40" maxlength="250"></textarea><br><br>
+            </section>
+        </div>
+        <section class="form_seccion_btns">
+            <button type="submit" class="registrar-btn"> Registrar </button>
+            <a href="/cliente" class="close-btn" id="cerrar-btn">Cerrar</a>
+        </section>
+    </form>
+</main>
+
+<script>
+    // se inicia el overlay para que no se dee click a otro lado que no sea el formulario de registro
+    var $overlay = $('#popup-overlay');
+    $overlay.show();
+
+    $('#cerrar-btn').on('click', function () {
+        var $popup = $('.cont_pantalla_emergente div');
+        $popup.remove();
+        $overlay.hide();
+    });
+
+    cargar_modelo_marca();
+    function cargar_modelo_marca(){
+        $.ajax({
+            url: url_servidor+'/cliente/vehiculo/modelo_marca',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#id_modelo_marca');
+                // Limpiar el select antes de agregar nuevas opciones
+                select.empty();
+                select.append($('<option>', {
+                    value: '',
+                    text: 'Selecciona una opción'
+                }));
+                // Agregar opciones al select
+                $.each(data, function (index, item) {
+                    select.append($('<option>', {
+                        value: item.id,
+                        text: item.modelo + ' - ' + item.marca
+                    }));
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error en la solicitud:', error);
+            }
+        });
+    }
+
+    $('#form_reg_cliente').submit(function (event) {
+        event.preventDefault();
+
+        var formData = {
+            nombres: $('#nombres').val(),
+            apellido_p: $('#apellido_p').val(),
+            apellido_m: $('#apellido_m').val(),
+            email: $('#email').val(),
+            telefono: $('#telefono').val(),
+            direccion: $('#direccion').val(),
+            nro_ci: $('#nro_ci').val()
+        };
+
+        $.ajax({
+            url: 'registro',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(formData),
+            success: function (respuesta) {
+                if (respuesta.exito) {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje, respuesta.redireccion);
+                } else {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje);
+                }
+            }
+        });
+    });
+    
+</script>
+{% endblock %}

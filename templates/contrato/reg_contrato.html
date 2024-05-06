@@ -1,0 +1,108 @@
+{% extends 'contrato/contrato.html' %}
+
+{% block contenido_pantalla_emergente %}
+<main>
+    <h1>Registro Contrato</h1>
+    <form id="form_reg_contrato">
+        <h3>Buscar Cliente</h3>
+        <label for="nro_ci">Número de CI:</label>
+        <input type="text" id="nro_ci" name="nro_ci" required maxlength="10" pattern="[0-9A-Za-z]{6,10}">
+        <button type="button" class="btn_buscar" onclick="buscar_cliente()">buscar</button><br><br>
+        <p>Datos busqueda cliente:<br>
+            <span id="datos_cliente"></span>
+        </p>
+        <input type="hidden" id="id_cliente">
+        <input type="hidden" id="cliente_estado_contrato">
+
+        <label for="fecha_inicio">Fecha de Inicio:</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" required><br><br>
+        <select id="id_servicio_abonado" required></select><br><br>
+
+        <button type="submit" class="registrar-btn"> Registrar </button>
+        <a href="/contrato" class="close-btn" id="cerrar-btn">Cerrar</a>
+    </form>
+</main>
+
+<script>
+    // se inicia el overlay para que no se dee click a otro lado que no sea el formulario de registro
+    var $overlay = $('#popup-overlay');
+    $overlay.show();
+
+    $('#cerrar-btn').on('click', function () {
+        var $popup = $('.cont_pantalla_emergente div');
+        $popup.remove();
+        $overlay.hide();
+    });
+
+    cargar_servicio_abonado();
+    function cargar_servicio_abonado(){
+        $.ajax({
+            url: url_servidor+'/contrato/traer_servicio_abonado',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#id_servicio_abonado');
+                // Limpiar el select antes de agregar nuevas opciones
+                select.empty();
+                select.append($('<option>', {
+                    value: '',
+                    text: 'Selecciona una opción'
+                }));
+                // Agregar opciones al select
+                $.each(data, function (index, item) {
+                    select.append($('<option>', {
+                        value: item.id,
+                        text: item.nombre + ' - ' + item.precio+'Bs'
+                    }));
+                });
+            }
+        });
+    }
+
+    function buscar_cliente(){
+        event.preventDefault();
+        $('#id_cliente').val('');
+        $('#cliente_estado_contrato').val('');
+        $.ajax({
+            url: url_servidor+'/cliente/traer_cliente_nro_ci/'+ $('#nro_ci').val(),
+            type: 'GET',
+            dataType: 'json',
+            success: function (respuesta) {
+                contenido= respuesta.contenido;
+                if (respuesta.exito) {
+                    datos_cliente= "nombre_cliente: "+ contenido.nombres +' '+ contenido.apellido_p
+                    $('#datos_cliente').text(datos_cliente);
+                    $('#id_cliente').val(contenido.id)
+                    $('#cliente_estado_contrato').val(contenido.estado_contrato);
+                } else {
+                    $('#datos_cliente').text(contenido);
+                }
+            }
+        });
+    }
+
+    $('#form_reg_contrato').submit(function (event) {
+        event.preventDefault();
+        var formData = {
+            fecha_inicio: $('#fecha_inicio').val(),
+            id_servicio_abonado: $('#id_servicio_abonado').val(),
+            id_cliente: $('#id_cliente').val(),
+            cliente_estado_contrato: $('#cliente_estado_contrato').val()
+        };
+        $.ajax({
+            url: url_servidor+'/contrato/contrato_registro',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(formData),
+            success: function (respuesta) {
+                if (respuesta.exito) {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje, respuesta.redireccion);
+                } else {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

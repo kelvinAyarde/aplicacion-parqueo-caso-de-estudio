@@ -1,0 +1,84 @@
+{% extends 'cliente/cliente.html' %}
+
+{% block contenido_pantalla_emergente %}
+<main>
+    <h1>Registro Vehiculo</h1>
+    <form id="form_reg_vehiculo">
+        <h3>Datos del Vehículo</h3>
+        <label for="placa">Placa:</label>
+        <input type="text" id="placa" name="placa" required maxlength="10" pattern="[0-9A-Z]{6,10}"><br><br>
+        <label for="color">Color:</label>
+        <input type="text" id="color" name="color" required maxlength="20"><br><br>
+        <label for="id_modelo_marca">Modelo/Marca:</label>
+        <select id="id_modelo_marca" required></select><br><br>
+        
+        <button type="submit" class="registrar-btn"> Registrar </button>
+        <a href="/cliente" class="close-btn" id="cerrar-btn">Cerrar</a>
+    </form>
+</main>
+
+<script>
+    var $overlay = $('#popup-overlay');
+    $overlay.show();
+
+    $('#cerrar-btn').on('click', function () {
+        var $popup = $('.cont_pantalla_emergente div');
+        $popup.remove();
+        $overlay.hide();
+    });
+
+    cargar_modelo_marca();
+    function cargar_modelo_marca(){
+        $.ajax({
+            url: url_servidor+'/cliente/vehiculo/modelo_marca',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#id_modelo_marca');
+                // Limpiar el select antes de agregar nuevas opciones
+                select.empty();
+                select.append($('<option>', {
+                    value: '',
+                    text: 'Selecciona una opción'
+                }));
+                // Agregar opciones al select
+                $.each(data, function (index, item) {
+                    select.append($('<option>', {
+                        value: item.id,
+                        text: item.modelo + ' - ' + item.marca
+                    }));
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error en la solicitud:', error);
+            }
+        });
+    }
+
+
+    $('#form_reg_vehiculo').submit(function (event) {
+        event.preventDefault();
+        var formData = {
+            placa: $('#placa').val(),
+            color: $('#color').val(),
+            id_modelo_marca: $('#id_modelo_marca').val(),
+        };
+        $.ajax({
+            url: url_servidor+'/cliente/registro_vehiculo',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(formData),
+            success: function (respuesta) {
+                if (respuesta.exito) {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje, respuesta.redireccion);
+                } else {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje);
+                }
+            }
+        });
+    });
+    
+
+</script>
+{% endblock %}

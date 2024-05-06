@@ -1,0 +1,41 @@
+{% extends 'inicio/base.html' %}
+
+{% block contenido %}
+<div class="reporte">
+    <div class="cont_pantalla_emergente">
+        {% block contenido_pantalla_emergente %}
+        {% endblock %}
+    </div>
+    <section class="parte-top">
+        <a href="reporte_veh_est">
+            <div class="decorado_cubrir color_decorado_cubrir_3">
+                <span class="material-icons-sharp">assessment</span>
+                <h3>Vehiculos Estacionados</h3>
+            </div>
+        </a>
+        <a href="reporte_sal_veh">
+            <div class="decorado_cubrir color_decorado_cubrir_3">
+                <span class="material-icons-sharp">assessment</span>
+                <h3>Salida Vehiculos</h3>
+            </div>
+        </a>
+        <a href="reporte_con_vig">
+            <div class="decorado_cubrir color_decorado_cubrir_3">
+                <span class="material-icons-sharp">assessment</span>
+                <h3>Contratos Vigentes</h3>
+            </div>
+        </a>
+    </section>
+    <section class="parte-mid">
+        <div class="cont_formularios">
+            {% block cont_formularios %}
+            {% endblock %}
+        </div>
+    </section>
+
+</div>
+
+<script>
+
+</script>
+{% endblock %}

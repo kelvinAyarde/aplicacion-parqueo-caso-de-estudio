@@ -1,0 +1,102 @@
+{% extends 'inicio/base.html' %}
+
+{% block contenido %}
+<div class="contrato">
+    <div class="cont_pantalla_emergente">
+        {% block contenido_pantalla_emergente %}
+        {% endblock %}
+    </div>
+    <section class="parte-top">
+        <a href="/contrato/contrato_registro">
+            <div class="decorado_cubrir color_decorado_cubrir_1">
+                <span class="material-icons-sharp">
+                    add
+                </span>
+                <h3>Agregar Contrato</h3>
+            </div>
+        </a>
+        <a href="/contrato/actualizar_pago_contrato">
+            <div class="decorado_cubrir color_decorado_cubrir_3">
+                <span class="material-icons-sharp">
+                    monetization_on
+                </span>
+                <h3>Pagar Contrato</h3>
+            </div>
+        </a>
+    </section>
+    <section class="parte-mid">
+        <div class="cont_tabla">
+            <h2>Contratos</h2>
+            <input type="search" id="buscarContrato" class="input_busqueda" 
+            placeholder="Buscar contrato">
+            <table id="tabla_contrato">
+                <thead>
+                    <tr>
+                        <th>Nombre_Cliente</th>
+                        <th>Nro_ci</th>
+                        <th>Servicio_Abonado</th>
+                        <th>Fecha_inicio</th>
+                        <th>Fecha_fin</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    cargar_tabla_contrato();
+    function cargar_tabla_contrato(){
+        $.ajax({
+            url: url_servidor+'/contrato/traer_contratos',
+            type: 'GET',
+            dataType: 'json',
+            success: function (resultado) {
+                var tabla = $('#tabla_contrato tbody');
+                if (resultado.length === 0) {
+                    console.log("la tabla no tiene datos");
+                }else{
+                    tabla.empty();
+                    resultado.forEach(data => {
+                        const tr = document.createElement('tr');
+                        const trContent = `
+                        <tr>
+                            <td>${data.nombre_abonado}</td>
+                            <td>${data.nro_ci}</td>
+                            <td>${data.nombre_servicio_abonado}</td>
+                            <td>${data.fecha_inicio}</td>
+                            <td>${data.fecha_fin}</td>
+                            <td class="${data.estado === 'I' ? 'Inactivo' : data.estado === 'E' ? 'Espera' : 'Activo'}">
+                                ${data.estado === 'I' ? 'Inactivo' : data.estado === 'E' ? 'Espera' : 'Activo'}</td>
+                        </tr>    
+                        `;
+                        tr.innerHTML = trContent;
+                        tabla.append(trContent);
+                    });
+                }
+            }
+        });
+    }
+
+    $('#buscarContrato').on('input', function() {
+        var textoBusqueda = $(this).val().toLowerCase();
+        $('#tabla_contrato tbody tr').each(function() {
+            var coincide = false;
+            $(this).find('td').each(function() {
+                if ($(this).text().toLowerCase().includes(textoBusqueda)) {
+                    coincide = true;
+                    return false; // Sale del bucle each() interno
+                }
+            });
+            if (coincide) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+</script>
+{% endblock %}

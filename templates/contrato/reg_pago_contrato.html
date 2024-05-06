@@ -1,0 +1,87 @@
+{% extends 'contrato/contrato.html' %}
+
+{% block contenido_pantalla_emergente %}
+<main>
+    <h1>Registro Pago Contrato</h1>
+    <form id="form_buscar_pago_contrato">
+        <h3>Buscar Abonado</h3>
+        <label for="nro_ci">Número de CI:</label>
+        <input type="text" id="nro_ci" name="nro_ci" required maxlength="10" pattern="[0-9A-Za-z]{6,10}">
+        <br>
+        <p>datos contrato:<br>
+            <span id="datos_contrato"></span>
+        </p>
+        <input type="hidden" id="id_pago_contrato">
+        <button type="submit" class="btn_buscar">buscar</button>
+    </form>
+    <form id="form_actualizar_pago_contrato">
+        <h3>Datos Pago Contrato</h3>
+        <label for="observacion">observacion:</label>
+        <textarea id="observacion" name="observacion" rows="3" cols="40" maxlength="250"></textarea><br><br>
+
+        <button type="submit" class="registrar-btn"> Registrar </button>
+        <a href="/contrato" class="close-btn" id="cerrar-btn">Cerrar</a>
+    </form>
+</main>
+
+<script>
+    // se inicia el overlay para que no se dee click a otro lado que no sea el formulario de registro
+    var $overlay = $('#popup-overlay');
+    $overlay.show();
+
+    $('#cerrar-btn').on('click', function () {
+        var $popup = $('.cont_pantalla_emergente div');
+        $popup.remove();
+        $overlay.hide();
+    });
+
+    $('#form_buscar_pago_contrato').submit(function (event) {
+        $('#id_pago_contrato').val('')
+        event.preventDefault();
+        $.ajax({
+            url: url_servidor+'/contrato/traer_pago_contrato/'+ $('#nro_ci').val(),
+            type: 'GET',
+            dataType: 'json',
+            success: function (respuesta) {
+                contenido= respuesta.contenido;
+                if (respuesta.exito) {
+                    datos_contrato= `
+                    nombre abonado: ${contenido.nombre_abonado} <br>
+                    servicio abonado: ${contenido.servicio_abonado} <br>
+                    fecha registro: ${contenido.fecha_registro} <br>
+                    monto: ${contenido.monto} bs<br>
+                    `;
+                    $('#datos_contrato').html(datos_contrato);
+                    $('#id_pago_contrato').val(contenido.id_pago_contrato)
+                } else {
+                    $('#datos_contrato').text(contenido);
+                }
+            }
+        });
+    });
+    
+    $('#form_actualizar_pago_contrato').submit(function (event) {
+        event.preventDefault();
+
+        var formData = {
+            id_pago_contrato: $('#id_pago_contrato').val(),
+            observacion: $('#observacion').val()
+        };
+
+        $.ajax({
+            url: url_servidor+'/contrato/actualizar_pago_contrato',
+            type: 'PUT',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(formData),
+            success: function (respuesta) {
+                if (respuesta.exito) {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje, respuesta.redireccion);
+                } else {
+                    crearMensaje(respuesta.titulo, respuesta.mensaje);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

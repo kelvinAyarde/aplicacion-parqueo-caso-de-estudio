@@ -1,0 +1,59 @@
+{% extends 'reporte/reporte.html' %}
+
+{% block cont_formularios %}
+<div>
+    <h1>Reporte Vehiculos Estacionados</h1>
+    <div class="cont_tabla">
+        
+        <table id="tabla_reporte">
+            <thead>
+                <tr>
+                    <th>Id_ticket</th>
+                    <th>Piso</th>
+                    <th>Lugar</th>
+                    <th>Placa</th>
+                    <th>Tipo_cliente</th>
+                    <th>Fecha_hora_ingreso</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    cargar_tabla_reporte1();
+    function cargar_tabla_reporte1(){
+        $.ajax({
+            url: url_servidor+'/reporte/traer_reporte_veh_est',
+            type: 'GET',
+            dataType: 'json',
+            success: function (resultado) {
+                var tabla = $('#tabla_reporte tbody');
+                if (resultado.length === 0) {
+                    console.log("la tabla no tiene datos");
+                }else{
+                    tabla.empty();
+                    resultado.forEach(data => {
+                        const tr = document.createElement('tr');
+                        const trContent = `
+                        <tr>
+                            <td>${data.id_ticket}</td>
+                            <td>${data.piso}</td>
+                            <td>${data.lugar}</td>
+                            <td>${data.placa}</td>
+                            <td>${data.tipo_cliente}</td>
+                            <td>${data.fecha_hora_ingreso}</td>
+                            <td>${data.estado}</td>
+                        </tr>    
+                        `;
+                        tr.innerHTML = trContent;
+                        tabla.append(trContent);
+                    });
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
